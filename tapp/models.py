@@ -1,7 +1,9 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 
 
-class trainee(models.Model):
-    name=models.CharField(max_length=255)
+class Customuser(AbstractUser):
+    user_type=models.IntegerField(default=0)
+
+
 

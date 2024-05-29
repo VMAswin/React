@@ -1,6 +1,6 @@
 from rest_framework import viewsets
-from .models import User, Book, Rental, Purchase
-from .serializers import UserSerializer, BookSerializer, RentalSerializer, PurchaseSerializer
+from .models import Customuser
+from .serializers import UserSerializer
 from django.core.mail import send_mail
 from django.contrib.auth.models import User
 from rest_framework.views import APIView
@@ -11,27 +11,26 @@ import random
 import string
 
 class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
+    queryset = Customuser.objects.all()
     serializer_class = UserSerializer
 
-class BookViewSet(viewsets.ModelViewSet):
-    queryset = Book.objects.all()
-    serializer_class = BookSerializer
+# class BookViewSet(viewsets.ModelViewSet):
+#     queryset = Book.objects.all()
+#     serializer_class = BookSerializer
 
-class RentalViewSet(viewsets.ModelViewSet):
-    queryset = Rental.objects.all()
-    serializer_class = RentalSerializer
+# class RentalViewSet(viewsets.ModelViewSet):
+#     queryset = Rental.objects.all()
+#     serializer_class = RentalSerializer
 
-class PurchaseViewSet(viewsets.ModelViewSet):
-    queryset = Purchase.objects.all()
-    serializer_class = PurchaseSerializer
+# class PurchaseViewSet(viewsets.ModelViewSet):
+#     queryset = Purchase.objects.all()
+#     serializer_class = PurchaseSerializer
 
 class RegisterView(APIView):
     def post(self, request):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            
             random_password = ''.join(random.choices(string.digits, k=6))
             user.set_password(random_password)
             user.save()
