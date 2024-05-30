@@ -1,28 +1,20 @@
-from rest_framework import serializers
+# users/serializers.py
+import random
+import string
 from .models import Customuser
+from rest_framework import serializers
+
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customuser
-        fields = ['id', 'username', 'email', 'password']
-        extra_kwargs = {'password': {'write_only': True}}
+        fields = ('username', 'email')
 
     def create(self, validated_data):
-        user = Customuser.objects.create_user(**validated_data)
+        user = Customuser.objects.create_user(
+            username=validated_data['username'],
+            email=validated_data['email'],
+            # password=str(random.randint(100000,999999))
+            
+        )
         return user
-        
-
-# class BookSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Book
-#         fields = '__all__'
-
-# class RentalSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Rental
-#         fields = '__all__'
-
-# class PurchaseSerializer(serializers.ModelSerializer):
-#     class Meta:
-#         model = Purchase
-#         fields = '__all__'
