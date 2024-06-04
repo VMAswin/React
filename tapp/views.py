@@ -1,8 +1,8 @@
 # users/views.py
 from rest_framework import viewsets
-from .models import Customuser,UserProfile
+from .models import Customuser,UserProfile,Department,Trainer
 from rest_framework import generics,status
-from .serializers import UserSerializer,LoginSerializer
+from .serializers import UserSerializer,LoginSerializer,TrainerSerializer
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.core.mail import send_mail
@@ -14,7 +14,7 @@ from rest_framework.decorators import api_view
 from django.http import JsonResponse
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib import messages
-
+from django.db.models import Q
 # class UserViewSet(viewsets.ModelViewSet):
 #     queryset = Customuser.objects.all()
 #     serializer_class = UserSerializer
@@ -55,13 +55,29 @@ def register_user(request):
     messages.info(request,'Registration success, please check your email for username and password..')
     return Response({'message': 'User registered successfully'})
 
-class Trainers(APIView):
-    def view(self,request):
-        serializer = UserSerializer(data=request.data)
-        if serializer.is_valid():
-            trainers = Customuser.objects.filter(user_type=2)
-            refresh = RefreshToken.for_user(trainers)
-            return JsonResponse({'access':str(refresh.access_token),'trainers':trainers},safe=False)
+class TrainersViewSet(viewsets.ModelViewSet):
+    queryset = Customuser.objects.filter(~Q(user_type=0)).filter(~Q(user_type=1))
+    serializer_class = UserSerializer
+
+@api_view(['POST'])
+def add_dept(request):
+    deptname = request.data.get('Department_name')
+    descript = request.data.get('Description')
+    dept = Department.objects.create(Department_name=deptname,Description=descript)
+    dept.save()
+    return Response({'message': 'Department Successfully added'})
+
+@api_view(['POST'])
+def add_tr_attend(request):
+    trainer = request.data.get('Trainer_name')
+    date = request.data.get('Date')
+    status = request.data.get('status')
+    tr = Trainer.objects.create(Trainer_name=trainer,Date=date,status=status)
+    tr.save()
+    return Response({'message': 'Attendence Successfully added'})
+class TrainerAttendenceViewSet(viewsets.ModelViewSet):
+    queryset= Trainer.objects.all()
+    serializer_class = TrainerSerializer
 
 class LoginView(APIView):
     def post(self, request):

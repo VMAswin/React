@@ -1,7 +1,7 @@
 # users/serializers.py
 import random
 import string
-from .models import Customuser,UserProfile
+from .models import Customuser,UserProfile,Department,Trainer
 from rest_framework import serializers
 
 
@@ -15,6 +15,16 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = Customuser
         fields = ('username', 'email','user_type')
+
+class DepartmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Department
+        fields = ('Department_name','Description')
+
+class TrainerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trainer
+        fields = '__all__'
 
     # def create(self, validated_data):
     #     user = Customuser.objects.create_user(
