@@ -1,9 +1,9 @@
 # users/serializers.py
-import random
-import string
-from .models import Customuser,UserProfile,Department,Trainer
-from rest_framework import serializers
 
+from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave
+from rest_framework import serializers
+from django.contrib.auth import authenticate, login
+from rest_framework_simplejwt.tokens import RefreshToken
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -26,16 +26,33 @@ class TrainerSerializer(serializers.ModelSerializer):
         model = Trainer
         fields = '__all__'
 
-    # def create(self, validated_data):
-    #     user = Customuser.objects.create_user(
-    #         username=validated_data['username'],
-    #         email=validated_data['email'],
-    #         # password=str(random.randint(100000,999999))
-            
-    #     )
-    #     return user
-    
+class AllocateprojectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model  = Projects
+        fields = '__all__'
 
+class TraineeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Trainee
+        fields = '__all__'
+
+class ProjectSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Projects
+        fields = '__all__'        
+       
+  
 class LoginSerializer(serializers.Serializer):
     email = serializers.CharField()
     password = serializers.CharField()
+
+class LeaveSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Leave
+        fields = '__all__' 
+
+class USerializer(serializers.Serializer):
+    id = serializers.IntegerField()
+
+   
+
