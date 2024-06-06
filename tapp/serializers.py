@@ -40,6 +40,7 @@ class ProjectSerializer(serializers.ModelSerializer):
     class Meta:
         model = Projects
         fields = '__all__'        
+
        
   
 class LoginSerializer(serializers.Serializer):

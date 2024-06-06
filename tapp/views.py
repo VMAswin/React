@@ -18,11 +18,15 @@ from django.db.models import Q
 from django.contrib.auth.hashers import check_password
 from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import make_password
+from django.views.decorators.csrf import csrf_exempt
+import json
+
 
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
+    
     user_type = request.data.get('user_type')
     
     password = ''.join(random.choices(string.digits, k=6))
@@ -46,6 +50,10 @@ class TrainersViewSet(viewsets.ModelViewSet):
     serializer_class = UserSerializer
 
 
+def allocate_t(request):
+    queryset = Customuser.objects.filter(user_type=3)
+    data = list(queryset.values('id', 'username'))  
+    return JsonResponse(data, safe=False)
 
 @api_view(['POST'])
 def add_dept(request):
@@ -110,12 +118,13 @@ def apply_leave_tr(request):
 
 
 @api_view(['GET'])
-@permission_classes([IsAuthenticated])
+# @permission_classes([IsAuthenticated])
 def trm_reset(request):
     current = request.data.get('Current_password')
     new = request.data.get('New_password')
     confirm = request.data.get('confirm_password')
-    user = USerializer(request.user)
+    # user = USerializer(request.user)
+    user = request.user.id
     print(user)
     print('hai')
     tr = Customuser.objects.get(id=user)
@@ -140,7 +149,6 @@ def trm_reset(request):
         return Response({'message': 'Password not'})
 
 
-    
 @api_view(['POST'])
 def upload_projects(request):
     proj = request.data.get('project_name')
@@ -159,6 +167,7 @@ def apply_leave_t(request):
     pro = Leave.objects.create(name=name,start_date=std,end_date=end,role=role)
     pro.save()
     return Response({'message': 'Leave Applied'})
+
 
 
 
@@ -188,6 +197,4 @@ class LoginView(APIView):
 
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
-
-
 

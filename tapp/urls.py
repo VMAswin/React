@@ -2,6 +2,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import LoginView,TrainersViewSet,TrainerAttendenceViewSet,TraineeAttendenceViewSet,ProjectViewSet,LeaveViewSet
 from .import views
+from django.contrib.auth import views as auth_views
 
 router = DefaultRouter()
 router.register(r'trainers',TrainersViewSet)
@@ -9,6 +10,7 @@ router.register(r'vtr_attend',TrainerAttendenceViewSet)
 router.register(r'vt_attend',TraineeAttendenceViewSet)
 router.register(r'view_projects',ProjectViewSet)
 router.register(r'view_leave',LeaveViewSet)
+# router.register(r'allocate_t',TViewSet,basename='traine')
 # router.register(r't_attend',TrainerAttendenceViewSet)
 
 
@@ -25,9 +27,11 @@ urlpatterns = [
     path('allocate_projects',views.allocate_projects,name='allocate_projects'),
     path('add_trainee_attend',views.add_trainee_attend,name='add_trainee_attend'),
     path('apply_leave_tr',views.apply_leave_tr,name='apply_leave_tr'),
-    # path('trm_reset',views.trm_reset,name='trm_reset'),
+    path('trm_reset',views.trm_reset,name='trm_reset'),
     path('upload_projects',views.upload_projects,name='upload_projects'),
     path('apply_leave_t',views.apply_leave_t,name='apply_leave_t'),
+    path('logout/', auth_views.LogoutView.as_view(), name='logout'),
+    path('allocate_t',views.allocate_t,name='allocate_t')
     # path('api/reset-password/', ResetPasswordView.as_view(), name='reset_password'),
     
 
