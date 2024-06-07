@@ -42,7 +42,10 @@ class Uploadprojects(models.Model):
     date = models.DateField()
     file=models.FileField(upload_to='files/',blank=True,null=True)
 
-
+class Allocation(models.Model):
+    trainee_name = models.CharField(max_length=25)
+    trainer_name = models.CharField(max_length=25)
+    
 
 
 

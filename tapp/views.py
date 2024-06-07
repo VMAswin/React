@@ -1,6 +1,6 @@
 # users/views.py
 from rest_framework import viewsets
-from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave,Uploadprojects
+from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave,Uploadprojects,Allocation
 from rest_framework import generics,status
 from .serializers import UserSerializer,LoginSerializer,TrainerSerializer,DepartmentSerializer,TraineeSerializer,ProjectSerializer,LeaveSerializer,USerializer
 from rest_framework.views import APIView
@@ -20,15 +20,30 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth.hashers import make_password
 from django.views.decorators.csrf import csrf_exempt
 import json
+from django.contrib.auth import logout
+from django.http import HttpResponseRedirect
+from django.contrib.auth.models import auth
+from django.contrib.auth.models import update_last_login
 
+# def logout_view(request):
+#     if request.method == 'POST':
+#         logout(request)
+#         return JsonResponse({'message': 'Successfully logged out'}, status=200)
+#     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
+# def logout_view(request):
+#     """Logs out the user and redirects to the login page."""
+#     logout(request)
+#     return HttpResponseRedirect('/')
+# def logout(request):
+#     return Response({'message': 'No'})
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
-    
+    # password = request.data.get('password')
     user_type = request.data.get('user_type')
-    
+    # Create User object and save to database
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
@@ -72,6 +87,13 @@ def add_tr_attend(request):
     tr.save()
     return Response({'message': 'Attendence Successfully added'})
 
+@api_view(['POST'])
+def allocate(request):
+    trainer = request.data.get('trainer_name')
+    trainee = request.data.get('trainee_name')
+    t = Allocation.objects.create(trainer_name=trainer,trainee_name=trainee)
+    t.save()
+    return Response({'message': 'Allocated'})
 class TrainerAttendenceViewSet(viewsets.ModelViewSet):
     queryset= Trainer.objects.all()
     serializer_class = TrainerSerializer
@@ -117,38 +139,76 @@ def apply_leave_tr(request):
     return Response({'message': 'Leave Applied'})
 
 
-@api_view(['GET'])
-# @permission_classes([IsAuthenticated])
+
+    
+@api_view(['POST'])
 def trm_reset(request):
-    current = request.data.get('Current_password')
-    new = request.data.get('New_password')
-    confirm = request.data.get('confirm_password')
-    # user = USerializer(request.user)
-    user = request.user.id
-    print(user)
-    print('hai')
-    tr = Customuser.objects.get(id=user)
-    curpas = tr.password
-    checkpass = check_password(current,curpas)
-    if checkpass:
-        if new == confirm:
-            if len(new) < 6 or not any(char.isupper() for char in new) \
-                    or not any(char.isdigit() for char in new) \
-                    or not any(char in '!@#$%^&*()_+-=[]{}|;:,.<>?/~' for char in new):
-                    messages.error(request, 'Password must be at least 6 characters long and contain at least one uppercase letter, one digit, and one special character, or entered password does not match')
-                    return Response({'message': 'Password Must meet the criteria'})
-            else:
-                
-                    usr = request.user.id
-                    tsr=Customuser.objects.get(id=usr)
-                    tsr.password=new
-                    tsr.set_password(new)
-                    tsr.save()
-                    return Response({'message': 'Password Reset'})
+    username = request.data.get('username')
+    old_password = request.data.get('Current_password')
+    new_password = request.data.get('New_password')
+
+    user = authenticate(username=username, password=old_password)
+    if user is not None:
+        if len(new_password) < 6 or not any(char.isupper() for char in new_password) \
+                     or not any(char.isdigit() for char in new_password) \
+                     or not any(char in '!@#$%^&*()_+-=[]{}|;:,.<>?/~' for char in new_password):
+                     messages.error(request, 'Password must be at least 6 characters long and contain at least one uppercase letter, one digit, and one special character, or entered password does not match')
+                     r=0
+                     return JsonResponse({'message': 'Password Must meet the criteria','r':r})
+        else:
+            user.set_password(new_password)
+            user.save()
+            r=1
+            return Response({"message": "Password reset successful",'r':r}, status=status.HTTP_200_OK)
     else:
-        return Response({'message': 'Password not'})
+        return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+    
+@api_view(['POST'])
+def tr_reset(request):
+    username = request.data.get('username')
+    old_password = request.data.get('Current_password')
+    new_password = request.data.get('New_password')
+
+    user = authenticate(username=username, password=old_password)
+    if user is not None:
+        if len(new_password) < 6 or not any(char.isupper() for char in new_password) \
+                     or not any(char.isdigit() for char in new_password) \
+                     or not any(char in '!@#$%^&*()_+-=[]{}|;:,.<>?/~' for char in new_password):
+                     messages.error(request, 'Password must be at least 6 characters long and contain at least one uppercase letter, one digit, and one special character, or entered password does not match')
+                     r=0
+                     return JsonResponse({'message': 'Password Must meet the criteria','r':r})
+        else:
+            user.set_password(new_password)
+            user.save()
+            r=1
+            return Response({"message": "Password reset successful",'r':r}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
+
+@api_view(['POST'])
+def t_reset(request):
+    username = request.data.get('username')
+    old_password = request.data.get('Current_password')
+    new_password = request.data.get('New_password')
+
+    user = authenticate(username=username, password=old_password)
+    if user is not None:
+        if len(new_password) < 6 or not any(char.isupper() for char in new_password) \
+                     or not any(char.isdigit() for char in new_password) \
+                     or not any(char in '!@#$%^&*()_+-=[]{}|;:,.<>?/~' for char in new_password):
+                     messages.error(request, 'Password must be at least 6 characters long and contain at least one uppercase letter, one digit, and one special character, or entered password does not match')
+                     r=0
+                     return JsonResponse({'message': 'Password Must meet the criteria','r':r})
+        else:
+            user.set_password(new_password)
+            user.save()
+            r=1
+            return Response({"message": "Password reset successful",'r':r}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message": "Invalid credentials"}, status=status.HTTP_400_BAD_REQUEST)
 
 
+    
 @api_view(['POST'])
 def upload_projects(request):
     proj = request.data.get('project_name')
@@ -172,29 +232,25 @@ def apply_leave_t(request):
 
 
 
-class LoginView(APIView):
-    def post(self, request):
-        serializer = LoginSerializer(data=request.data)
-        if serializer.is_valid():
-            email = request.data.get('email')
-            password = request.data.get('password')
-            user = authenticate(username = email, password = password)
-            if user:
-                user_type=user.user_type
-                if user_type == 0:
-                    role = 'Admin'
-                elif user_type == 1:
-                    role = 'Trainee Manager'
-                elif user_type == 2:
-                    role = 'Trainer'
-                else:
-                    role = 'Trainee'
-                refresh = RefreshToken.for_user(user)
-                
-                print(refresh.access_token)
-                return JsonResponse({'access':str(refresh.access_token),'role':role},safe=False)
-        else:
 
-            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
                 
+@api_view(['POST'])
+def login(request):
+    username = request.data.get('username')
+    password = request.data.get('password')
+    user = authenticate(username=username, password=password)
+    if user is not None:
+        user_type=user.user_type
+        if user_type == 0:
+            role = 'Admin'
+        elif user_type == 1:
+           role = 'Trainee Manager'
+        elif user_type == 2:
+            role = 'Trainer'
+        else:
+            role = 'Trainee'
+        update_last_login(None, user)
+        return JsonResponse({"message": "Login successful",'role':role}, status=status.HTTP_200_OK)
+    else:
+        return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
