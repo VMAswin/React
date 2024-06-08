@@ -25,18 +25,7 @@ from django.http import HttpResponseRedirect
 from django.contrib.auth.models import auth
 from django.contrib.auth.models import update_last_login
 
-# def logout_view(request):
-#     if request.method == 'POST':
-#         logout(request)
-#         return JsonResponse({'message': 'Successfully logged out'}, status=200)
-#     return JsonResponse({'error': 'Invalid request method'}, status=400)
 
-# def logout_view(request):
-#     """Logs out the user and redirects to the login page."""
-#     logout(request)
-#     return HttpResponseRedirect('/')
-# def logout(request):
-#     return Response({'message': 'No'})
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
