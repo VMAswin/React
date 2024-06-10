@@ -1,4 +1,4 @@
-# users/serializers.py
+
 
 from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave
 from rest_framework import serializers

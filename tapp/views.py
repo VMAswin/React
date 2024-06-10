@@ -30,9 +30,9 @@ from django.contrib.auth.models import update_last_login
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
-    # password = request.data.get('password')
+   
     user_type = request.data.get('user_type')
-    # Create User object and save to database
+    
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
