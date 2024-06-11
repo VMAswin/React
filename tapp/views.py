@@ -1,6 +1,6 @@
 # users/views.py
 from rest_framework import viewsets
-from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave,Uploadprojects,Allocation
+from .models import Customuser,UserProfile,Department,Trainer,Projects,Trainee,Leave,Uploadprojects,Allocation,Notifications
 from rest_framework import generics,status
 from .serializers import UserSerializer,LoginSerializer,TrainerSerializer,DepartmentSerializer,TraineeSerializer,ProjectSerializer,LeaveSerializer,USerializer
 from rest_framework.views import APIView
@@ -24,15 +24,16 @@ from django.contrib.auth import logout
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import auth
 from django.contrib.auth.models import update_last_login
-
+from django.views import View
+from django.views.decorators.http import require_GET
 
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
-   
+    # password = request.data.get('password')
     user_type = request.data.get('user_type')
-    
+    # Create User object and save to database
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
@@ -53,6 +54,12 @@ class TrainersViewSet(viewsets.ModelViewSet):
     queryset = Customuser.objects.filter(~Q(user_type=0)).filter(~Q(user_type=1))
     serializer_class = UserSerializer
 
+@require_GET
+def approve_disapprove(request):
+    ad = Customuser.objects.filter(is_approved=0).filter(user_type=3)
+    data = list(ad.values('username','email','is_approved'))
+    print(data)
+    return JsonResponse(data,safe=False)
 
 def allocate_t(request):
     queryset = Customuser.objects.filter(user_type=3)
@@ -218,28 +225,50 @@ def apply_leave_t(request):
     return Response({'message': 'Leave Applied'})
 
 
-
-
-
-
                 
 @api_view(['POST'])
 def login(request):
     username = request.data.get('username')
     password = request.data.get('password')
-    user = authenticate(username=username, password=password)
-    if user is not None:
-        user_type=user.user_type
-        if user_type == 0:
-            role = 'Admin'
-        elif user_type == 1:
-           role = 'Trainee Manager'
-        elif user_type == 2:
-            role = 'Trainer'
+    us = Customuser.objects.get(username=username)
+    if us.is_approved == 1 and us.user_type == 3:
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            user_type=user.user_type
+            if user_type == 0:
+                role = 'Admin'
+            elif user_type == 1:
+                role = 'Trainee Manager'
+            elif user_type == 2:
+                role = 'Trainer'
+            else:
+                role = 'Trainee'
+            update_last_login(None, user)
+            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type}, status=status.HTTP_200_OK)
         else:
-            role = 'Trainee'
-        update_last_login(None, user)
-        return JsonResponse({"message": "Login successful",'role':role}, status=status.HTTP_200_OK)
+            return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+    elif us.user_type == 1 or us.user_type == 2:
+        user = authenticate(username=username, password=password)
+        if user is not None:
+            user_type=user.user_type
+            if user_type == 0:
+                role = 'Admin'
+            elif user_type == 1:
+                role = 'Trainee Manager'
+            elif user_type == 2:
+                role = 'Trainer'
+            update_last_login(None, user)
+            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type}, status=status.HTTP_200_OK)
+        else:
+            return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     else:
-        return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
+        return JsonResponse({"message": "Approval Pending"}, status=status.HTTP_200_OK)
+    
 
+    
+@api_view(['POST'])
+def add_noti(request):
+    notifi = request.data.get('notification')
+    no = Notifications.objects.create(Notification=notifi)
+    no.save()
+    return Response({"message": "Notification sent"})

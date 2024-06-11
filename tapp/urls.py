@@ -15,9 +15,10 @@ router.register(r'view_leave',LeaveViewSet)
 
 
 
+
 urlpatterns = [
     path('', include(router.urls)),
-    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),  
+    path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('login',views.login,name='login'),
     path('users/',views.register_user,name='users'),
     path('add_dept',views.add_dept,name='add_dept'),
@@ -33,7 +34,9 @@ urlpatterns = [
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
     path('allocate_t',views.allocate_t,name='allocate_t'),
     path('allocate',views.allocate,name='allocate'),
+    path('approve_disapprove/',views.approve_disapprove,name='approve_disapprove'),
     path('logout',views.logout,name='logout'),
+    path('add_noti',views.add_noti,name='add_noti')
     
 
     
