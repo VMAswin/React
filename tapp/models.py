@@ -4,6 +4,7 @@ from django.contrib.auth.models import AbstractUser
 
 class Customuser(AbstractUser):
     user_type=models.IntegerField(default=0)
+    is_approved = models.IntegerField(default=0)
     
 class UserProfile(models.Model):
     user = models.ForeignKey(Customuser, on_delete=models.CASCADE)
@@ -30,6 +31,7 @@ class Trainee(models.Model):
     Trainee_name = models.CharField(max_length=25)
     Date = models.DateField()
     status =models.CharField(max_length=20)
+    trainee = models.ForeignKey(Customuser,on_delete=models.CASCADE,null=True)
 
 class Leave(models.Model):
     name = models.CharField(max_length=25)
@@ -47,5 +49,7 @@ class Allocation(models.Model):
     trainer_name = models.CharField(max_length=25)
     
 
+class Notifications(models.Model):
+    Notification = models.CharField(max_length=25)
 
 

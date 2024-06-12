@@ -26,14 +26,15 @@ from django.contrib.auth.models import auth
 from django.contrib.auth.models import update_last_login
 from django.views import View
 from django.views.decorators.http import require_GET
+import json
+
 
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
-    # password = request.data.get('password')
     user_type = request.data.get('user_type')
-    # Create User object and save to database
+
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
@@ -54,12 +55,7 @@ class TrainersViewSet(viewsets.ModelViewSet):
     queryset = Customuser.objects.filter(~Q(user_type=0)).filter(~Q(user_type=1))
     serializer_class = UserSerializer
 
-@require_GET
-def approve_disapprove(request):
-    ad = Customuser.objects.filter(is_approved=0).filter(user_type=3)
-    data = list(ad.values('username','email','is_approved'))
-    print(data)
-    return JsonResponse(data,safe=False)
+
 
 def allocate_t(request):
     queryset = Customuser.objects.filter(user_type=3)
@@ -103,14 +99,7 @@ def allocate_projects(request):
     pro.save()
     return Response({'message': 'Project Successfully alloted'})
 
-@api_view(['POST'])
-def add_trainee_attend(request):
-    trainee = request.data.get('Trainee_name')
-    date = request.data.get('Date')
-    status = request.data.get('status')
-    tr = Trainee.objects.create(Trainee_name=trainee,Date=date,status=status)
-    tr.save()
-    return Response({'message': 'Attendence Successfully added'})
+
 
 class TraineeAttendenceViewSet(viewsets.ModelViewSet):
     queryset = Trainee.objects.all()
@@ -133,7 +122,6 @@ def apply_leave_tr(request):
     pro = Leave.objects.create(name=name,start_date=std,end_date=end,role=role)
     pro.save()
     return Response({'message': 'Leave Applied'})
-
 
 
     
@@ -225,7 +213,6 @@ def apply_leave_t(request):
     return Response({'message': 'Leave Applied'})
 
 
-                
 @api_view(['POST'])
 def login(request):
     username = request.data.get('username')
@@ -244,7 +231,8 @@ def login(request):
             else:
                 role = 'Trainee'
             update_last_login(None, user)
-            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type}, status=status.HTTP_200_OK)
+            refresh = RefreshToken.for_user(user)
+            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type,'access':str(refresh.access_token)}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     elif us.user_type == 1 or us.user_type == 2:
@@ -264,11 +252,60 @@ def login(request):
     else:
         return JsonResponse({"message": "Approval Pending"}, status=status.HTTP_200_OK)
     
+@api_view(['POST'])
+def approve(request,id):
+    try:
+         user = Customuser.objects.get(id=id)
+         user.is_approved = 1
+         user.save()
+         return Response({'status': 'User approved'}, status=status.HTTP_200_OK)
+    except Customuser.DoesNotExist:
+        return Response({'error': 'User not found'}, status=status.HTTP_404_NOT_FOUND)
+          
 
+@require_GET
+def approve_disapprove(request):
+    ad = Customuser.objects.filter(is_approved=0).filter(~Q(user_type=1)).filter(~Q(user_type=0))
+    data = list(ad.values('id','username','email','is_approved'))
     
+    return JsonResponse(data,safe=False)
+
 @api_view(['POST'])
 def add_noti(request):
     notifi = request.data.get('notification')
     no = Notifications.objects.create(Notification=notifi)
     no.save()
     return Response({"message": "Notification sent"})
+
+@require_GET
+def add_trainee_attend(request):
+     tra = Customuser.objects.filter(user_type=3)
+     data = list(tra.values('id','username'))
+     return JsonResponse(data,safe=False)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+@require_GET
+def t_attend(request):
+    user = request.user
+    uid = user.id
+    attend = Trainee.objects.filter(trainee_id=uid)
+    data = list(attend.values('id','Trainee_name','Date','status'))
+    return JsonResponse(data,safe=False)
+
+       
+
+@csrf_exempt
+@api_view(['POST'])
+def add_trainee_atd(request):
+    data = json.loads(request.body)
+    name = data.get('selectedValue')
+    date = data.get('Date')
+    statu = data.get('status')
+    tr = Customuser.objects.get(id=name)
+    tr_name=tr.username
+    trainee = Trainee.objects.create(Trainee_name=tr_name,Date=date,status=statu,trainee=tr)
+    trainee.save()   
+    return Response({'status': 'success'}, status=status.HTTP_201_CREATED)
+    
+
