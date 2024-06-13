@@ -1,15 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TrainersViewSet,TrainerAttendenceViewSet,TraineeAttendenceViewSet,ProjectViewSet,LeaveViewSet
+from .views import TrainerAttendenceViewSet,TraineeAttendenceViewSet,ProjectViewSet
 from .import views
 from django.contrib.auth import views as auth_views
 
 router = DefaultRouter()
-router.register(r'trainers',TrainersViewSet)
+# router.register(r'trainers',TrainersViewSet)
 router.register(r'vtr_attend',TrainerAttendenceViewSet)
 router.register(r'vt_attend',TraineeAttendenceViewSet)
 router.register(r'view_projects',ProjectViewSet)
-router.register(r'view_leave',LeaveViewSet)
+# router.register(r'view_leave',LeaveViewSet)
+# router.register(r'allocate_t',TViewSet,basename='traine')
+# router.register(r't_attend',TrainerAttendenceViewSet)
 
 
 
@@ -31,15 +33,28 @@ urlpatterns = [
     path('upload_projects',views.upload_projects,name='upload_projects'),
     path('apply_leave_t',views.apply_leave_t,name='apply_leave_t'),
     path('logout/', auth_views.LogoutView.as_view(), name='logout'),
-    path('allocate_t',views.allocate_t,name='allocate_t'),
     path('allocate',views.allocate,name='allocate'),
     path('approve_disapprove/',views.approve_disapprove,name='approve_disapprove'),
     path('approve/<int:id>',views.approve,name='approve'),
     path('logout',views.logout,name='logout'),
     path('add_noti',views.add_noti,name='add_noti'),
     path('add_trainee_atd',views.add_trainee_atd,name='add_trainee_atd'),
-    path('t_attend',views.t_attend,name='t_attend')
-
+    path('t_attend',views.t_attend,name='t_attend'),
+    path('trainees',views.trainees,name='trainees'),
+    path('trainers/',views.trainers,name='trainers'),
+    path('remove/<int:id>',views.Remove,name='remove'),
+    path('add_trainers',views.add_trainers,name='add_trainers'),
+    path('add_trainer',views.add_trainer,name='add_trainer'),
+    path('vt_atd_trm',views.vt_atd_trm,name='vt_atd_trm'),
+    path('view_leave',views.view_leave,name='view_leave'),
+    path('approve_leave/<int:id>',views.approve_leave,name='approve_leave'),
+    path('reject_leave/<int:id>',views.reject_leave,name='reject_leave'),
+    path('add_trainer_attend',views.add_trainer_attend,name='add_trainer_attend'),
+    path('add_trainer_atd',views.add_trainer_atd,name='add_trainer_atd'),
+    path('trainer_attend_TR',views.trainer_attend_TR,name='trainer_attend_TR'),
+    path('trainees_alo',views.trainees_alo,name='trainees_alo'),
+    path('trainers_alo',views.trainers_alo,name='trainers_alo'),
+    path('view_allocated_trainees',views.view_allocated_trainees,name='view_allocated_trainees'),
     
 
     

@@ -21,11 +21,13 @@ class Trainer(models.Model):
     Trainer_name = models.CharField(max_length=25)
     Date = models.DateField()
     status =models.CharField(max_length=20)
+    trainer = models.ForeignKey(Customuser,on_delete=models.CASCADE,null=True)
 
 class Projects(models.Model):
     project_name = models.CharField(max_length=25)
     start_date = models.DateField()
     end_date = models.DateField()
+    trainer = models.ForeignKey(Customuser,on_delete=models.CASCADE,null=True)
 
 class Trainee(models.Model):
     Trainee_name = models.CharField(max_length=25)
@@ -38,6 +40,8 @@ class Leave(models.Model):
     role = models.CharField(max_length=25)
     start_date = models.DateField()
     end_date = models.DateField()
+    is_approved = models.IntegerField(default=0)
+
 
 class Uploadprojects(models.Model):
     project_name = models.CharField(max_length=25)
@@ -47,6 +51,7 @@ class Uploadprojects(models.Model):
 class Allocation(models.Model):
     trainee_name = models.CharField(max_length=25)
     trainer_name = models.CharField(max_length=25)
+    department = models.ForeignKey(Department,on_delete=models.CASCADE,null=True)
     
 
 class Notifications(models.Model):
