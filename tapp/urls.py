@@ -1,17 +1,12 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import TrainerAttendenceViewSet,TraineeAttendenceViewSet,ProjectViewSet
+from .views import TrainerAttendenceViewSet
 from .import views
 from django.contrib.auth import views as auth_views
 
 router = DefaultRouter()
-# router.register(r'trainers',TrainersViewSet)
 router.register(r'vtr_attend',TrainerAttendenceViewSet)
-router.register(r'vt_attend',TraineeAttendenceViewSet)
-router.register(r'view_projects',ProjectViewSet)
-# router.register(r'view_leave',LeaveViewSet)
-# router.register(r'allocate_t',TViewSet,basename='traine')
-# router.register(r't_attend',TrainerAttendenceViewSet)
+
 
 
 
@@ -55,6 +50,13 @@ urlpatterns = [
     path('trainees_alo',views.trainees_alo,name='trainees_alo'),
     path('trainers_alo',views.trainers_alo,name='trainers_alo'),
     path('view_allocated_trainees',views.view_allocated_trainees,name='view_allocated_trainees'),
+    path('view_projects/',views.view_projects,name='view_projects'),
+    path('view_uploaded_projects_tr',views.view_uploaded_projects_tr,name='view_uploaded_projects_tr'),
+    path('class_schedule_trainers',views.class_schedule_trainers,name='class_schedule_trainers'),
+    path('add_class_schedule',views.add_class_schedule,name='add_class_schedule'),
+    path('view_class_TR',views.view_class_TR,name='view_class_TR'),
+    path('view_class_T',views.view_class_T,name='view_class_T'),
+    path('vt_attend/6',views.vt_attend,name='vt_attend'),
     
 
     

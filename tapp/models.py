@@ -47,12 +47,21 @@ class Uploadprojects(models.Model):
     project_name = models.CharField(max_length=25)
     date = models.DateField()
     file=models.FileField(upload_to='files/',blank=True,null=True)
+    trainee_name = models.CharField(max_length=25,null=True)
+    trainee = models.ForeignKey(Customuser,on_delete=models.CASCADE,null=True)
 
 class Allocation(models.Model):
     trainee_name = models.CharField(max_length=25)
     trainer_name = models.CharField(max_length=25)
     department = models.ForeignKey(Department,on_delete=models.CASCADE,null=True)
     
+
+class Schedule(models.Model):
+    Date = models.DateField()
+    From = models.CharField(max_length=25,null=True)
+    To = models.CharField(max_length=25,null=True)
+    Trainer = models.ForeignKey(Customuser,on_delete=models.CASCADE,null=True)
+
 
 class Notifications(models.Model):
     Notification = models.CharField(max_length=25)
