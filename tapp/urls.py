@@ -56,7 +56,8 @@ urlpatterns = [
     path('add_class_schedule',views.add_class_schedule,name='add_class_schedule'),
     path('view_class_TR',views.view_class_TR,name='view_class_TR'),
     path('view_class_T',views.view_class_T,name='view_class_T'),
-    path('vt_attend/6',views.vt_attend,name='vt_attend'),
+    path('vt_attend/',views.vt_attend,name='vt_attend'),
+    path('available_projects',views.available_projects,name='available_projects'),
     
 
     
