@@ -33,7 +33,9 @@ import json
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
+    # password = request.data.get('password')
     user_type = request.data.get('user_type')
+    # Create User object and save to database
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
@@ -49,6 +51,8 @@ def register_user(request):
     send_mail(subject,message,settings.EMAIL_HOST_USER,{user.email})
     messages.info(request,'Registration success, please check your email for username and password..')
     return Response({'message': 'User registered successfully'})
+
+
 
 @csrf_exempt
 @api_view(['POST'])
@@ -76,6 +80,7 @@ def add_trainer(request):
 
 
 
+
 @api_view(['POST'])
 def add_dept(request):
     deptname = request.data.get('Department_name')
@@ -90,6 +95,10 @@ def add_dept(request):
 class TrainerAttendenceViewSet(viewsets.ModelViewSet):
     queryset= Trainer.objects.all()
     serializer_class = TrainerSerializer
+
+
+
+
 
 
 @api_view(['POST'])
@@ -206,7 +215,7 @@ def login(request):
                 role = 'Trainee'
             update_last_login(None, user)
             refresh = RefreshToken.for_user(user)
-            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type,'access':str(refresh.access_token)}, status=status.HTTP_200_OK)
+            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type,'access':str(refresh.access_token),'username':username}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     elif us.user_type == 0 or us.user_type == 2:
@@ -219,7 +228,7 @@ def login(request):
                 role = 'Trainer'
             update_last_login(None, user)
             refresh = RefreshToken.for_user(user)
-            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type,'access':str(refresh.access_token)}, status=status.HTTP_200_OK)
+            return JsonResponse({"message": "Login successful",'role':role,'user_type':user_type,'access':str(refresh.access_token),'username':username}, status=status.HTTP_200_OK)
         else:
             return Response({"message": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
     else:
@@ -369,7 +378,7 @@ def trainer_attend_TR(request):
     data = list(attend.values('id','Trainer_name','Date','status'))
     return JsonResponse(data,safe=False)
 
-
+# @require_GET
 @permission_classes([IsAuthenticated])
 @api_view(['POST'])
 def allocate_projects(request):
@@ -385,18 +394,26 @@ def allocate_projects(request):
 
 
 
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-@require_GET
-def view_uploaded_projects_tr(request):
-     user = request.user
-     traine = Allocation.objects.get(trainer_name=user)
-     traine_name = traine.trainee_name
-     traine_id = Customuser.objects.get(username=traine_name)
-     proj = Uploadprojects.objects.filter(trainee=traine_id)
-     data = list(proj.values('id','project_name','date','file','trainee_name'))
-     return JsonResponse(data,safe=False)
 
+@api_view(['GET'])
+@require_GET
+@permission_classes([IsAuthenticated])
+def view_uploaded_projects_tr(request):
+    user = request.user
+    traine = Allocation.objects.get(trainer_name=user)
+    traine_name = traine.trainee_name
+    traine_id = Customuser.objects.get(username=traine_name)
+    files = Uploadprojects.objects.filter(trainee=traine_id)
+    file_data = [
+        {
+            'id': file.id,
+            'name': file.project_name,
+            'file': file.file.url,
+            'date': file.date,
+            'trainee_name':file.trainee_name
+        } for file in files
+    ]
+    return JsonResponse(file_data, safe=False)
 
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
@@ -433,22 +450,27 @@ def add_class_schedule(request):
      return Response({'message': 'Scheduled'})
 
 
+
+
+# @require_GET
+@csrf_exempt
 @api_view(['POST'])
+# @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def upload_projects(request):
-    data = json.loads(request.body)
-    proj = data.get('selectedValue')
+    File = request.FILES.get('file')
+    date = request.data.get('date')
+    proj = request.data.get('selectedValue')
     pro = Projects.objects.get(id=proj)
     proj_name = pro.project_name
-    date = request.data.get('date')
-    file = request.data.get('file')
     user = request.user
     uid = user.id
     trainee = Customuser.objects.get(id=uid)
     trainee_name = trainee.username
-    pro = Uploadprojects.objects.create(project_name=proj_name,date=date,file=file,trainee=trainee,trainee_name=trainee_name)
+    pro = Uploadprojects.objects.create(project_name=proj_name,date=date,file=File,trainee=trainee,trainee_name=trainee_name)
     pro.save()
-    return Response({'message': 'Uploaded'})
+    return Response({'message':'Uploaded'})
+    
 
 @require_GET
 @api_view(['GET'])
@@ -516,6 +538,7 @@ def trainees(request):
 def add_trainee_attend(request):
      user = request.user
      trainee = Allocation.objects.filter(trainer_name=user)
+    #  tra = Customuser.objects.filter(user_type=3)
      data = list(trainee.values('id','trainee_name'))
      return JsonResponse(data,safe=False)
      
