@@ -58,6 +58,7 @@ urlpatterns = [
     path('view_class_T',views.view_class_T,name='view_class_T'),
     path('vt_attend/',views.vt_attend,name='vt_attend'),
     path('available_projects',views.available_projects,name='available_projects'),
+    path('trm',views.trm,name='trm')
     
 
     

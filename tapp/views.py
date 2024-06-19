@@ -27,15 +27,13 @@ from django.contrib.auth.models import update_last_login
 from django.views import View
 from django.views.decorators.http import require_GET
 import json
-
+from django.db.models import Count
 
 @api_view(['POST'])
 def register_user(request):
     username = request.data.get('username')
     email = request.data.get('email')
-    # password = request.data.get('password')
     user_type = request.data.get('user_type')
-    # Create User object and save to database
     password = ''.join(random.choices(string.digits, k=6))
     user = Customuser.objects.create(username=username, email=email,user_type=user_type)
     user.set_password(password)
@@ -51,7 +49,6 @@ def register_user(request):
     send_mail(subject,message,settings.EMAIL_HOST_USER,{user.email})
     messages.info(request,'Registration success, please check your email for username and password..')
     return Response({'message': 'User registered successfully'})
-
 
 
 @csrf_exempt
@@ -79,8 +76,6 @@ def add_trainer(request):
     return Response({'message': 'User registered successfully'})
 
 
-
-
 @api_view(['POST'])
 def add_dept(request):
     deptname = request.data.get('Department_name')
@@ -95,9 +90,6 @@ def add_dept(request):
 class TrainerAttendenceViewSet(viewsets.ModelViewSet):
     queryset= Trainer.objects.all()
     serializer_class = TrainerSerializer
-
-
-
 
 
 
@@ -272,6 +264,19 @@ def trainers(request):
      return JsonResponse(data,safe=False)
 
 @require_GET
+def trm(request):
+     pending = Customuser.objects.filter(is_approved=0).count()
+     staff = Customuser.objects.filter(~Q(user_type=0)).count()
+     leaves = Leave.objects.filter(is_approved=0).count()
+     trainee_attend = Trainee.objects.all().count()
+     trainer_attend = Trainer.objects.all().count()
+     attend = trainee_attend+trainer_attend
+     trainees = Customuser.objects.filter(user_type=3).count()
+     trainers = Customuser.objects.filter(user_type=2).count()
+     return JsonResponse({'pending':pending,'staff':staff,'leave':leaves,'attend':attend,'trainees':trainees,'trainers':trainers})
+
+
+@require_GET
 def vt_atd_trm(request):
      trainees = Trainee.objects.all()
      data = list(trainees.values('id','Trainee_name','Date','status'))
@@ -394,7 +399,6 @@ def allocate_projects(request):
 
 
 
-
 @api_view(['GET'])
 @require_GET
 @permission_classes([IsAuthenticated])
@@ -448,8 +452,6 @@ def add_class_schedule(request):
      schedule = Schedule.objects.create(Date=date,From=from_time,To=to_time,Trainer=trainer)
      schedule.save()
      return Response({'message': 'Scheduled'})
-
-
 
 
 # @require_GET
@@ -538,7 +540,6 @@ def trainees(request):
 def add_trainee_attend(request):
      user = request.user
      trainee = Allocation.objects.filter(trainer_name=user)
-    #  tra = Customuser.objects.filter(user_type=3)
      data = list(trainee.values('id','trainee_name'))
      return JsonResponse(data,safe=False)
      
